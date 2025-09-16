@@ -97,23 +97,30 @@ if  __name__ == "__main__":
     strain_percent_range = np.arange(start= -0.10, stop=0.12, step=0.02) # [start,stop)
     NOISE_LEVEL = 0.05
 
-    # ======= Relaxed structure parameters for ZnO ======= # 
     
-    # a
+    # ======= Relaxed structure parameters for ZnO ======= # 
     celldm1_bohr = 6.178_821_408_099_141
     celldm1_angstroms = celldm1_bohr * 0.52918
-    
-    # ratio c/a
     celldm3 = 1.614_358_356_153_010
-
+    
+    print(f"Lattice Parameters from vcrelax2.out:\n")
+    print(f"\t a = {celldm1_bohr:.5f} (a.u) = {celldm1_angstroms:.5f} Å ")
+    print(f"\t c/a = {celldm3:.5f}\n")
+    print("="*120)
+    
     # Anistropic Strain - independent values (a, c/a)
     strained_a_values = celldm1_angstroms * (1 + strain_percent_range)
     strained_covera_values = celldm3 * (1 + strain_percent_range)
     
+    print("Strained a values:\n", [f"{valor:.5f}" for valor in strained_a_values])
+    print()
+    print("Strained c/a values:\n", [f"{valor:.5f}" for valor in strained_covera_values])
+    print("="*120)
     
-    for a in strained_a_values:
-       for covera in strained_covera_values:
-           make_scf_from_template(a, covera, supercell_size=(3, 1, 2))
+    
+    # for a in strained_a_values:
+    #    for covera in strained_covera_values:
+    #        make_scf_from_template(a, covera, supercell_size=(2, 2, 3))
 
     # make_scf_from_template(
     #                 a=celldm1_angstroms,
