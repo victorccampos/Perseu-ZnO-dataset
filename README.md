@@ -70,6 +70,7 @@ Notebooks de análise e visualização dos resultados
 - Python ≥ 3.8 com bibliotecas:
   - `numpy`, `ase`, `matplotlib`, `pandas`, etc.
 
+	conda create -n qe72_env -c conda-forge qe=7.2 ase numpy pandas matplotlib
 ---
 
 ## Autor
