@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 
 # Atomic Simulation Environment (ASE) imports
 from ase.io import read                         
@@ -82,7 +82,7 @@ def make_pwscf_from_atoms(
     create_dir: bool = True,
     add_noise: bool = False,
     noise_std_dev: float = 0.0,
-    num_structure: int | None = None,
+    num_structure: Optional[int] = None,
 ) -> None:
     
     # Structural parameters of Atoms obj to naming inputs
@@ -98,14 +98,21 @@ def make_pwscf_from_atoms(
     primitive_covera = supercell.info.get('primitive_covera', covera)
 
     # I/O naming conventions
-    directory_name = f'cell{nx}{ny}{nz}.in'
+    directory_name = f'cell_{nx}x{ny}x{nz}.in'
     input_name: str = f'ZnO-{primitive_a:.2f}-{primitive_covera:.2f}-{nx}{ny}{nz}.in'
     
+    displacements = None
+    random_seed = None
     if (add_noise and noise_std_dev > 0):
         random_seed = np.random.randint(0, 1e9)
-        supercell.rattle(stdev=noise_std_dev, seed=random_seed)
         
-        directory_name = f'random_cell{nx}{ny}{nz}.in'
+        # Store displacements to append as comments in input file
+        before = supercell.get_positions().copy()
+        supercell.rattle(stdev=noise_std_dev, seed=random_seed)
+        after = supercell.get_positions()
+        displacements = after - before
+
+        directory_name = f'random_{nx}x{ny}x{nz}.in'
         input_name = f'ZnO-{primitive_a:.2f}-{primitive_covera:.2f}-{nx}{ny}{nz}-{noise_std_dev}.in' 
         
         filepath = os.path.join(directory_name, input_name)
@@ -114,16 +121,15 @@ def make_pwscf_from_atoms(
         basename, suffix = os.path.splitext(input_name)
         input_name = f"{basename}-{num_structure}{suffix}"
 
-
     if create_dir:
         os.makedirs(directory_name, exist_ok=True)
         filepath = os.path.join(directory_name, input_name)
     else:
         filepath = input_name
 
-
     # Writing input file.
     NAMELIST, PSEUDOS, K_GRID = get_qe_params(input_name)
+    print(f"Writing input file: {filepath}")
     write_espresso_in(file = filepath, atoms = supercell,
         input_data = NAMELIST,
         pseudopotentials = PSEUDOS,
@@ -131,6 +137,18 @@ def make_pwscf_from_atoms(
         koffset = (0,0,0),
         crystal_coordinates = True
     )
+
+    if displacements is not None:
+        symbols = supercell.get_chemical_symbols()
+        with open(filepath, "a") as f:
+            f.write("\n! ========================================================\n")
+            f.write(f"! Gaussian random displacements added (std={noise_std_dev:.3f} Å)\n")
+            f.write(f"! Random seed = {random_seed}\n")
+            f.write("! Format: atom_index   symbol   dx   dy   dz   (Å)\n")
+            for i, (sym, d) in enumerate(zip(symbols, displacements)):
+                f.write(f"! {i+1:3d}   {sym:2s}   {d[0]: .6f}   {d[1]: .6f}   {d[2]: .6f}\n")
+            f.write("! ========================================================\n")
+
     return
 
 if  __name__ == "__main__":
@@ -147,7 +165,7 @@ if  __name__ == "__main__":
     
     # ================== Strain Setup =================== # 
     # Anistropic Strain => independent values (a, c/a) 
-    strain_percent_range = np.arange(start= -0.10, stop=0.12, step=0.05) # [start,stop)
+    strain_percent_range = np.arange(start= -0.10, stop=0.12, step=0.02) # [start,stop)
     strained_a_values = celldm1_angstroms * (1 + strain_percent_range)
     strained_covera_values = celldm3 * (1 + strain_percent_range)
     
@@ -160,23 +178,34 @@ if  __name__ == "__main__":
     print("\nStrained c/a values:\n", [f"{valor:.5f}" for valor in strained_covera_values])
     print("\n"+"="*120)
 
-    for a in strained_a_values:
-        for covera in strained_covera_values:
-            SUPERCELL_SHAPE = (1, 1, 2)  
-            # Creating Atoms ASE object
-            atoms = transform_unit_cell(supercell_shape=SUPERCELL_SHAPE, a=a, covera=covera)
+    SUPERCELL_SHAPE = (1, 1, 3)
+    # for a in strained_a_values:
+    #     for covera in strained_covera_values:
+              
+    #         # Creating Atoms ASE object
+    #         atoms = transform_unit_cell(supercell_shape=SUPERCELL_SHAPE, a=a, covera=covera)
 
+    #         # Opcao com random positions numeradas
+    #         for idx in range(1, n_variant_structures+1):
+    #             make_pwscf_from_atoms(
+    #                 supercell = atoms.copy(),
+    #                 add_noise = True,
+    #                 noise_std_dev = noise_levels[idx-1],
+    #                 num_structure = idx
+    #             )
 
-            # Opcao com random positions numeradas
-            for idx in range(1, n_variant_structures+1):
-                make_pwscf_from_atoms(
-                    supercell = atoms.copy(),
-                    add_noise = True,
-                    noise_std_dev = noise_levels[idx-1],
-                    num_structure = idx
-                )
-
-
+    # ======================= 1 Arquivo de teste ======================= #
     
-    
-    
+    # Create a single strained structure with noise for testing
+    test_a = strained_a_values[len(strained_a_values)//2]   
+    test_covera = strained_covera_values[len(strained_covera_values)//2]
+    test_noise_std = noise_levels[1]  # Typical noise level
+    test_supercell_shape = (1, 2, 1)
+    test_atoms = transform_unit_cell(supercell_shape=test_supercell_shape, a=test_a, covera=test_covera)
+    make_pwscf_from_atoms(
+        supercell = test_atoms.copy(),
+        add_noise = True,
+        noise_std_dev = test_noise_std,
+        num_structure = 99,
+        create_dir = False
+    )
