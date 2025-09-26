@@ -8,6 +8,7 @@ from ase.io import read
 from ase import Atoms
 from ase.build import make_supercell
 from ase.io.espresso import write_espresso_in
+from ase.units import Bohr
 
 def read_header_json(json_path='header_input.json') -> dict:
     """
@@ -129,11 +130,11 @@ def make_pwscf_from_atoms(
 
     # Writing input file.
     NAMELIST, PSEUDOS, K_GRID = get_qe_params(input_name)
-    print(f"Writing input file: {filepath}")
-    write_espresso_in(file = filepath, atoms = supercell,
-        input_data = NAMELIST,
-        pseudopotentials = PSEUDOS,
-        kpts = K_GRID,
+    
+    
+    write_espresso_in(
+        file = filepath, atoms = supercell,
+        input_data = NAMELIST, pseudopotentials = PSEUDOS, kpts = K_GRID,
         koffset = (0,0,0),
         crystal_coordinates = True
     )
@@ -152,16 +153,10 @@ def make_pwscf_from_atoms(
     return
 
 if  __name__ == "__main__":
-    # ======= Relaxed structure parameters for ZnO ======= # 
-    
+    # ======= Relaxed structure parameters for ZnO ======= #     
     celldm1_bohr = 6.178_821_408_099_141
-    celldm1_angstroms = celldm1_bohr * 0.52918
+    celldm1_angstroms = celldm1_bohr * Bohr
     celldm3 = 1.614_358_356_153_010
-    
-    print(f"Lattice Parameters from vcrelax2.out:\n")
-    print(f"\t a = {celldm1_bohr:.5f} (a.u) = {celldm1_angstroms:.5f} Å ")
-    print(f"\t c/a = {celldm3:.5f}\n")
-    print("="*120)
     
     # ================== Strain Setup =================== # 
     # Anistropic Strain => independent values (a, c/a) 
@@ -173,39 +168,37 @@ if  __name__ == "__main__":
     n_variant_structures = 3
     conservative_stdev, typical_stdev, aggressive_stdev = 0.04, 0.06, 0.12
     noise_levels = [conservative_stdev, typical_stdev, aggressive_stdev]
-
-    print("\nStrained a values:\n", [f"{valor:.5f}" for valor in strained_a_values])
-    print("\nStrained c/a values:\n", [f"{valor:.5f}" for valor in strained_covera_values])
-    print("\n"+"="*120)
-
-    SUPERCELL_SHAPE = (1, 1, 3)
-    # for a in strained_a_values:
-    #     for covera in strained_covera_values:
-              
-    #         # Creating Atoms ASE object
-    #         atoms = transform_unit_cell(supercell_shape=SUPERCELL_SHAPE, a=a, covera=covera)
-
-    #         # Opcao com random positions numeradas
-    #         for idx in range(1, n_variant_structures+1):
-    #             make_pwscf_from_atoms(
-    #                 supercell = atoms.copy(),
-    #                 add_noise = True,
-    #                 noise_std_dev = noise_levels[idx-1],
-    #                 num_structure = idx
-    #             )
-
-    # ======================= 1 Arquivo de teste ======================= #
     
-    # Create a single strained structure with noise for testing
-    test_a = strained_a_values[len(strained_a_values)//2]   
-    test_covera = strained_covera_values[len(strained_covera_values)//2]
-    test_noise_std = noise_levels[1]  # Typical noise level
-    test_supercell_shape = (1, 2, 1)
-    test_atoms = transform_unit_cell(supercell_shape=test_supercell_shape, a=test_a, covera=test_covera)
-    make_pwscf_from_atoms(
-        supercell = test_atoms.copy(),
-        add_noise = True,
-        noise_std_dev = test_noise_std,
-        num_structure = 99,
-        create_dir = False
-    )
+
+    # ======================= Input Files Creation ======================= #
+    SUPERCELL_SHAPE = (1, 3, 1)
+    print(f"Creating input files for {SUPERCELL_SHAPE}")
+    for a in strained_a_values:
+        for covera in strained_covera_values:
+              
+            # Creating Atoms ASE object
+            atoms = transform_unit_cell(supercell_shape=SUPERCELL_SHAPE, a=a, covera=covera)
+
+            # Opcao com random positions numeradas
+            for idx in range(1, n_variant_structures+1):
+                make_pwscf_from_atoms(
+                    supercell = atoms.copy(),
+                    add_noise = True,
+                    noise_std_dev = noise_levels[idx-1],
+                    num_structure = idx
+                )
+    print(f"Input files created.")
+    
+    # ======================= 1 Arquivo de teste ======================= #
+    # test_a = strained_a_values[len(strained_a_values)//2]   
+    # test_covera = strained_covera_values[len(strained_covera_values)//2]
+    # test_noise_std = noise_levels[1]  # Typical noise level
+    # test_supercell_shape = (1, 2, 1)
+    # test_atoms = transform_unit_cell(supercell_shape=test_supercell_shape, a=test_a, covera=test_covera)
+    # make_pwscf_from_atoms(
+    #     supercell = test_atoms.copy(),
+    #     add_noise = True,
+    #     noise_std_dev = test_noise_std,
+    #     num_structure = 99,
+    #     create_dir = False
+    # )
