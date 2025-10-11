@@ -1,0 +1,61 @@
+&CONTROL
+  calculation = 'nscf',
+  restart_mode = 'from_scratch',
+  !restart_mode = 'restart',
+  pseudo_dir = './',
+  outdir='.'
+  prefix = 'ZnO_PBE_bulk',
+  nstep=450,
+  verbosity = 'high',
+  tstress=.true.,
+  tprnfor=.true.,
+  forc_conv_thr=1.0d-5,
+  etot_conv_thr=1.0d-6,
+/
+&SYSTEM
+    ibrav= 4,
+    celldm(1) = 6.194571412,
+    celldm(3) = 1.614358356,
+    ntyp= 2,
+    nat=  4,
+    ecutwfc =  70,
+    ecutrho = 350,
+    occupations = 'fixed',
+    nbnd =  36,
+    degauss = 0.005,
+    smearing = 'gaussian',
+    !noncolin = .true.,
+    !lspinorb = .true.,
+    !assume_isolated = '2D',
+    !assume_isolated = 'esm',
+    !esm_bc='bc1',
+    !esm_w= 0.d0,
+    !esm_nfit=4,
+/
+&ELECTRONS
+    diagonalization = 'david'
+    mixing_mode='local-TF',
+    conv_thr= 1.0d-9,
+    mixing_beta=0.1,
+    electron_maxstep=190,
+/
+/
+&IONS
+  ion_dynamics = 'bfgs',
+/
+&CELL
+  cell_dynamics = 'bfgs',
+  press_conv_thr  = 0.5d0,
+  !cell_dofree='xyz'
+  cell_dofree='ibrav'
+/
+ATOMIC_SPECIES
+Zn   63.380    Zn.upf
+ O   15.999    O.upf
+K_POINTS automatic
+ 10 10 10  0  0  0
+ATOMIC_POSITIONS (crystal)
+ Zn         0.6666666667        0.3333333333        0.4992464029
+ Zn         0.3333333333        0.6666666667       -0.0007535971
+  O         0.6666666667        0.3333333333        0.8810635971
+  O         0.3333333333        0.6666666667        0.3810635971
