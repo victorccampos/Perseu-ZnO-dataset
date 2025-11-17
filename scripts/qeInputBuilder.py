@@ -53,14 +53,15 @@ def transform_unit_cell(supercell_shape: tuple[int, int, int],
     transform_matrix = np.diag(supercell_shape)
     supercell = make_supercell(primitive_cell, transform_matrix)
 
-    # Save supercell dimensions nx, ny, nz in metadata to naming inputs
+    # Save supercell metadata to naming inputs
     supercell.info['shape'] = supercell_shape
-    supercell.info['primitive_a'] = a
-    supercell.info['primitive_covera'] = covera
+    supercell.info['prim_a'] = a
+    supercell.info['prim_c'] = c
+    supercell.info['prim_covera'] = covera
 
     return supercell
 
-def get_qe_params(input_name: str) -> Tuple[dict, dict, tuple]:
+def get_namelists_and_cards(input_name: str) -> tuple[dict, dict, tuple]:
     """
     Args:
         input_name: str - name of the input file (e.g. ZnO-3.25-1.61-222.in)
@@ -86,48 +87,23 @@ def get_qe_params(input_name: str) -> Tuple[dict, dict, tuple]:
 
 def make_pwscf_from_atoms(
     supercell: Atoms,
-    create_dir: bool = True,
-    add_noise: bool = False,
-    noise_std_dev: float = 0.0,
-    num_structure: Optional[int] = None,
+    noise_level: float = 0.0,
+    num_structure: int | None = None,
+    create_dir: bool = True
 ) -> None:
     
-    # Structural parameters of Atoms obj to naming inputs
-    nx, ny, nz = supercell.info['shape']
+    # IO
+    directory_name, input_name = build_io_names(supercell, noise_level, num_structure)
+    displacements, random_seed = None, None
     
-    # Fallback values are the trasformed lattice parameters
-    params = supercell.cell.cellpar()
-    a = params[0]
-    c = params[2]
-    covera = c/a
-
-    primitive_a = supercell.info.get('primitive_a', a)
-    primitive_covera = supercell.info.get('primitive_covera', covera)
-
-    # I/O naming conventions
-    directory_name = f'cell_{nx}x{ny}x{nz}.in'
-    input_name: str = f'ZnO-{primitive_a:.2f}-{primitive_covera:.2f}-{nx}{ny}{nz}.in'
-    
-    displacements = None
-    random_seed = None
-    if (add_noise and noise_std_dev > 0):
-        random_seed = np.random.randint(0, 1e9)
-        
+    if noise_level:
+        random_seed: int = np.random.randint(0, 1e9)        
         # Store displacements to append as comments in input file
-        before = supercell.get_positions().copy()
-        supercell.rattle(stdev=noise_std_dev, seed=random_seed)
-        after = supercell.get_positions()
-        displacements = after - before
-
-        directory_name = f'random_{nx}x{ny}x{nz}.in'
-        input_name = f'ZnO-{primitive_a:.2f}-{primitive_covera:.2f}-{nx}{ny}{nz}-{noise_std_dev}.in' 
-        
-        filepath = os.path.join(directory_name, input_name)
-
-    if num_structure is not None:
-        basename, suffix = os.path.splitext(input_name)
-        input_name = f"{basename}-{num_structure}{suffix}"
-
+        initial_positions: np.ndarray = supercell.get_positions().copy()
+        supercell.rattle(stdev=noise_level, seed=random_seed)
+        final_positions: np.ndarray = supercell.get_positions()
+        displacements: np.ndarray = final_positions - initial_positions
+    
     if create_dir:
         os.makedirs(directory_name, exist_ok=True)
         filepath = os.path.join(directory_name, input_name)
@@ -135,21 +111,28 @@ def make_pwscf_from_atoms(
         filepath = input_name
 
     # Writing input file.
-    NAMELIST, PSEUDOS, K_GRID = get_qe_params(input_name)
+    NAMELIST, PSEUDOS, K_GRID = get_namelists_and_cards(input_name)
     
     
-    write_espresso_in(
-        file = filepath, atoms = supercell,
+    write_espresso_in(file = filepath, atoms = supercell,
         input_data = NAMELIST, pseudopotentials = PSEUDOS, kpts = K_GRID,
         koffset = (0,0,0),
         crystal_coordinates = True
     )
 
+    # Hubbar TODO tirar os valores hard-coded.
+    Ud = 11.50
+    Up = 8.0
+    with open(filepath, "a") as f:
+        f.write("\nHUBBARD (ortho-atomic)\n")
+        f.write(f"U Zn-3d {Ud}\n")
+        f.write(f"U O-2p {Up}\n")
+
     if displacements is not None:
         symbols = supercell.get_chemical_symbols()
         with open(filepath, "a") as f:
             f.write("\n! ========================================================\n")
-            f.write(f"! Gaussian random displacements added (std={noise_std_dev:.3f} Å)\n")
+            f.write(f"! Gaussian random displacements added (std={noise_level:.3f} Å)\n")
             f.write(f"! Random seed = {random_seed}\n")
             f.write("! Format: atom_index   symbol   dx   dy   dz   (Å)\n")
             for i, (sym, d) in enumerate(zip(symbols, displacements)):
@@ -158,25 +141,94 @@ def make_pwscf_from_atoms(
 
     return
 
+def build_io_names(supercell: Atoms, noise_level: float = 0.0, num_structure: int | None = None) -> tuple[str, str]:
+    # Structural parameters of Atoms obj to name inputs
+    nx, ny, nz = supercell.info['shape']    
+    
+    # Modified Lattice Parameters as fallback values.
+    lattice_params = supercell.cell.cellpar()
+    a = lattice_params[0]
+    c = lattice_params[2]
+    covera = c/a
 
+    prim_a = supercell.info.get('prim_a', a)
+    prim_covera = supercell.info.get('prim_covera', covera)
 
+    # Default (no-noise)
+    directory_name = f'cell_{nx}{ny}{nz}.in'
+    input_name: str = f'ZnO-{prim_a:.2f}-{prim_covera:.2f}-{nx}{ny}{nz}.in'
+    
+    if (noise_level != 0):
+        directory_name = f'random_{nx}{ny}{nz}.in'
+        input_name = f'ZnO-{prim_a:.2f}-{prim_covera:.2f}-{noise_level}-{nx}{ny}{nz}.in'
 
+    if num_structure is not None:
+        input_name= (
+                f"ZnO-{prim_a:.2f}-{prim_covera:.2f}-"
+                f"{noise_level}-{num_structure}-"
+                f"{nx}{ny}{nz}.in"
+            )
+    return directory_name, input_name
+
+def setup_strain_arrays(
+    range_in_percent: int,
+    step: int,
+    relaxed_a: float,
+    relaxed_c: float | None = None,
+    relaxed_covera: float | None = None
+) -> tuple[np.ndarray, np.ndarray]:
+    
+    strain_in_percents = np.arange(-range_in_percent, range_in_percent+step, step) / 100
+    strain = (1 + strain_in_percents)
+    
+    isotropic_case: bool = relaxed_a is not None and relaxed_c is not None
+    anisotropic_case: bool = relaxed_a is not None and relaxed_covera is not None
+    
+    if isotropic_case: # user passes (a, c) => isotropic Strain
+        print(f"Adding Isotropic strain varying both c and a in {range_in_percent}%")
+        strained_a = relaxed_a * strain 
+        strained_c = relaxed_c * strain
+        for a, c, p in zip(strained_a, strained_c, strain_in_percents):
+            print(f'a = {a:.2f} | c = {c:.2f} | {p:.1%} |')
+        return strained_a, strained_c
+    elif anisotropic_case: # User passes (a, c/a) => anisotropic Strain
+        print(f"Adding anisotropic strain varying both a and c/a in {range_in_percent}%")
+        strained_a = relaxed_a * strain
+        strained_covera = relaxed_covera * strain
+        for a, covera, p in zip(strained_a, strained_covera, strain_in_percents):
+            print(f'a = {a:.2f} | c/a = {covera:.2f} | {p:.1%} |')
+        return strained_a, strained_covera
+    else:
+        raise ValueError("Provide either covera or c parameters!\n")
+   
 if  __name__ == "__main__":
     # ======= Relaxed structure parameters for ZnO ======= #     
-    celldm1_bohr = 6.178_821_408_099_141
-    celldm1_angstroms = celldm1_bohr * Bohr
-    celldm3 = 1.614_358_356_153_010
+    a_Bohr = 6.178_821_408_099_141
+    ratio_ca = 1.614_358_356_153_010
     
-    # ================ Strain Setup (-10% <= strain <=10%) ============ # 
-    # Anistropic: Independent values (a, c/a) # [start,stop)
-    strain_percent_range = np.arange(start= -0.10, stop=0.12, step=0.02) 
-    strained_a_values = celldm1_angstroms * (1 + strain_percent_range)
-    strained_covera_values = celldm3 * (1 + strain_percent_range)
+    a_angstroms = a_Bohr * Bohr
+    c_angstroms = a_angstroms * ratio_ca 
+
+    # CASE: Anisotropic Strain
+    # strained_a_values, strained_covera_values = setup_strain_arrays(
+    #         relaxed_a = a_angstroms, 
+    #         relaxed_covera = ratio_ca,
+    #         range_in_percent= 10,
+    #         step = 2
+    #     )
     
-    # 3 noises levels for each (a, c/a) combination
-    n_variant_structures = 3
-    conservative_stdev, typical_stdev, aggressive_stdev = 0.04, 0.06, 0.12
-    noise_levels = [conservative_stdev, typical_stdev, aggressive_stdev]
+    # CASE: Isotropic Strain
+    strained_a_values, strained_c_values = \
+        setup_strain_arrays(
+            relaxed_a = a_angstroms, 
+            relaxed_c = c_angstroms,
+            range_in_percent= 10,
+            step = 2
+        )
+    
+    # Random Displacements
+    noise_level = 0.04
+    n_variant_structures = len(noise_levels)
     
     # ======================= Dataset Creation ======================= #
     # supercell_shape = (2, 1, 2)
@@ -197,9 +249,7 @@ if  __name__ == "__main__":
     # print(f"Input files created.")
     
     # ======================= 1 FILE Creation ======================= #
-    supercell_shape = (1, 1, 1)
-    a, covera = celldm1_angstroms, celldm3
-    atoms = transform_unit_cell(supercell_shape=supercell_shape, a=a, covera=covera)
-    
-    make_pwscf_from_atoms(supercell = atoms, create_dir = False)
+    supercell_shape = (2, 2, 2)
+    supercell = transform_unit_cell(supercell_shape=supercell_shape, a=a_angstroms, c=c_angstroms)
+    make_pwscf_from_atoms(supercell, create_dir = False, noise_level=noise_level, num_structure=69)
 
