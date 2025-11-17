@@ -1,21 +1,6 @@
-"""Utility script for automated generation of Quantum ESPRESSO (`pw.x`) input
-files used in ZnO dataset creation for ANN training. 
-It builds anisotropically strained and optionally noise-perturbed supercells
-from a primitive ZnO cell and writes valid inputs with consistent naming, 
-pseudopotential mapping, and k-point grids.
-
-Uses the Atomic Simulation Environment (ASE) to handle atomic structures, latti-
-ce transformations, random displacements, and input writing. 
-The configuration headers (control, system, electrons) are read from external 
-JSON `header_input.json`, ensuring reproducibility and scalability of dataset 
-generation.
-"""
-
-
 import os
 import json
 import numpy as np
-from typing import Tuple, Dict, Optional
 
 # Atomic Simulation Environment (ASE) imports
 from ase.io import read                         
@@ -33,19 +18,26 @@ def read_header_json(json_path='header_input.json') -> dict:
     return data
 
 
-def transform_unit_cell(supercell_shape: Tuple[int, int, int],
-    a: float,
-    covera: float,
-    template: str = 'ZnO_template.in'
-) -> Atoms:
+def transform_unit_cell(supercell_shape: tuple[int, int, int],
+    a: float, c: float | None = None, covera: float | None = None,
+    primitive_cell_scf: str = 'ZnO_template.in') -> Atoms:
     """
     Transform a primitive cell to a supercell for a given size. 
     """
-    primitive_cell: Atoms = read(template, format='espresso-in')
+    primitive_cell: Atoms = read(primitive_cell_scf, format='espresso-in')
     chemical_symbols: list[str] = primitive_cell.get_chemical_symbols()
     scaled_positions: np.ndarray = primitive_cell.get_scaled_positions()
     
-    c = a * covera
+    # User passes (a, c/a)
+    if covera is not None and c is None:
+        c = a * covera
+    # User passes (a, c)
+    elif covera is None and c is not None:
+        covera = c / a
+
+    elif covera is None and c is None:
+        raise ValueError("Provide either covera or c parameters!\n")
+   
     new_cell_vec = np.array([
         [a, 0, 0],
         [-a/2.0, a*(np.sqrt(3)/2.0), 0 ],
@@ -166,6 +158,9 @@ def make_pwscf_from_atoms(
 
     return
 
+
+
+
 if  __name__ == "__main__":
     # ======= Relaxed structure parameters for ZnO ======= #     
     celldm1_bohr = 6.178_821_408_099_141
@@ -184,26 +179,27 @@ if  __name__ == "__main__":
     noise_levels = [conservative_stdev, typical_stdev, aggressive_stdev]
     
     # ======================= Dataset Creation ======================= #
-    supercell_shape = (2, 1, 2)
-    print(f"Creating input files for {supercell_shape}")
-    for a in strained_a_values:
-        for covera in strained_covera_values:
+    # supercell_shape = (2, 1, 2)
+    # print(f"Creating input files for {supercell_shape}")
+    # for a in strained_a_values:
+    #     for covera in strained_covera_values:
             
-            atoms = transform_unit_cell(supercell_shape=supercell_shape, a=a, covera=covera)
+    #         atoms = transform_unit_cell(supercell_shape=supercell_shape, a=a, covera=covera)
 
-            # Numerate structures based on noise level
-            for idx in range(1, n_variant_structures+1):
-                make_pwscf_from_atoms(
-                    supercell = atoms.copy(),
-                    add_noise = True,
-                    noise_std_dev = noise_levels[idx-1],
-                    num_structure = idx
-                )
-    print(f"Input files created.")
+    #         # Numerate structures based on noise level
+    #         for idx in range(1, n_variant_structures+1):
+    #             make_pwscf_from_atoms(
+    #                 supercell = atoms.copy(),
+    #                 add_noise = True,
+    #                 noise_std_dev = noise_levels[idx-1],
+    #                 num_structure = idx
+    #             )
+    # print(f"Input files created.")
     
     # ======================= 1 FILE Creation ======================= #
-    supercell_shape = (2, 2, 2)
+    supercell_shape = (1, 1, 1)
     a, covera = celldm1_angstroms, celldm3
     atoms = transform_unit_cell(supercell_shape=supercell_shape, a=a, covera=covera)
     
     make_pwscf_from_atoms(supercell = atoms, create_dir = False)
+
