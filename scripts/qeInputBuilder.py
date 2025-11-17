@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+from itertools import product
 
 # Atomic Simulation Environment (ASE) imports
 from ase.io import read                         
@@ -17,8 +18,29 @@ def read_header_json(json_path='header_input.json') -> dict:
         data: dict = json.load(f)
     return data
 
+def get_namelists_and_cards(input_name: str) -> tuple[dict, dict, tuple]:
+    """
+    Args:
+        input_name: str - name of the input file (e.g. ZnO-3.25-1.61-222.in)
+    Returns:
+        NAMELIST: dict - dictionary with namelists (& sections) of pw.x input
+        PSEUDOS: dict - dictionary with pseudopotentials
+        K_GRID: tuple - k-point grid
+    """
+    prefix = input_name.replace(".in", "")
+    
+    # Namelists - &control, &system, &electrons
+    NAMELIST = read_header_json()
+    NAMELIST['control']['prefix'] = prefix
+    NAMELIST['control']['tprnfor'] = True
+    
+    # Cards
+    PSEUDOS = {'Zn': 'Zn.upf','O': 'O.upf'}
+    K_GRID = (6, 6, 6)
 
-def transform_unit_cell(supercell_shape: tuple[int, int, int],
+    return NAMELIST, PSEUDOS, K_GRID
+
+def transform_primitive_cell(supercell_shape: tuple[int, int, int],
     a: float, c: float | None = None, covera: float | None = None,
     primitive_cell_scf: str = 'ZnO_template.in') -> Atoms:
     """
@@ -61,29 +83,6 @@ def transform_unit_cell(supercell_shape: tuple[int, int, int],
 
     return supercell
 
-def get_namelists_and_cards(input_name: str) -> tuple[dict, dict, tuple]:
-    """
-    Args:
-        input_name: str - name of the input file (e.g. ZnO-3.25-1.61-222.in)
-    Returns:
-        NAMELIST: dict - dictionary with namelists (& sections) of pw.x input
-        PSEUDOS: dict - dictionary with pseudopotentials
-        K_GRID: tuple - k-point grid
-    """
-    prefix = input_name.replace(".in", "")
-    
-    # Namelists - &control, &system, &electrons
-    NAMELIST = read_header_json()
-    NAMELIST['control']['prefix'] = prefix
-    NAMELIST['control']['tprnfor'] = True
-    
-    # Cards
-    PSEUDOS = {'Zn': 'Zn.upf','O': 'O.upf'}
-    K_GRID = (6, 6, 6)
-
-    return NAMELIST, PSEUDOS, K_GRID
-
-
 
 def make_pwscf_from_atoms(
     supercell: Atoms,
@@ -120,7 +119,7 @@ def make_pwscf_from_atoms(
         crystal_coordinates = True
     )
 
-    # Hubbar TODO tirar os valores hard-coded.
+    # Hubbard: TODO tirar os valores hard-coded.
     Ud = 11.50
     Up = 8.0
     with open(filepath, "a") as f:
@@ -185,14 +184,14 @@ def setup_strain_arrays(
     anisotropic_case: bool = relaxed_a is not None and relaxed_covera is not None
     
     if isotropic_case: # user passes (a, c) => isotropic Strain
-        print(f"Adding Isotropic strain varying both c and a in {range_in_percent}%")
+        print("="*100 +f"\nAdding Isotropic strain varying both c and a in {range_in_percent}% in steps of {step}%\n")
         strained_a = relaxed_a * strain 
         strained_c = relaxed_c * strain
         for a, c, p in zip(strained_a, strained_c, strain_in_percents):
             print(f'a = {a:.2f} | c = {c:.2f} | {p:.1%} |')
         return strained_a, strained_c
     elif anisotropic_case: # User passes (a, c/a) => anisotropic Strain
-        print(f"Adding anisotropic strain varying both a and c/a in {range_in_percent}%")
+        print("="*100 +f"\nAdding anisotropic strain varying both a and c/a in {range_in_percent}% in steps of {step}%\n")
         strained_a = relaxed_a * strain
         strained_covera = relaxed_covera * strain
         for a, covera, p in zip(strained_a, strained_covera, strain_in_percents):
@@ -200,9 +199,23 @@ def setup_strain_arrays(
         return strained_a, strained_covera
     else:
         raise ValueError("Provide either covera or c parameters!\n")
-   
+
+def get_irreducible_sc_shapes() -> list[np.ndarray]:
+    ni_values = [1, 2, 3]
+
+    # Combinações (nx, ny, nz)
+    combinations = [
+        np.array([nx, ny, nz])
+        for nx, ny, nz in product(ni_values, ni_values, ni_values)
+        if nx >= ny  # condição de simetria reduzida
+    ]
+
+    # ordena pela multiplicidade (número de átomos)
+    combinations.sort(key=lambda x: np.prod(x))
+    return combinations   
+
 if  __name__ == "__main__":
-    # ======= Relaxed structure parameters for ZnO ======= #     
+    # Relaxed structure parameters for Zinc Oxide
     a_Bohr = 6.178_821_408_099_141
     ratio_ca = 1.614_358_356_153_010
     
@@ -210,46 +223,38 @@ if  __name__ == "__main__":
     c_angstroms = a_angstroms * ratio_ca 
 
     # CASE: Anisotropic Strain
-    # strained_a_values, strained_covera_values = setup_strain_arrays(
+    strained_a_values, strained_covera_values = \
+        setup_strain_arrays(
+            relaxed_a = a_angstroms, 
+            relaxed_covera = ratio_ca,
+            range_in_percent= 5,
+            step = 1
+        )
+    
+    # CASE: Isotropic Strain
+    # strained_a_values, strained_c_values = \
+    #     setup_strain_arrays(
     #         relaxed_a = a_angstroms, 
-    #         relaxed_covera = ratio_ca,
+    #         relaxed_c = c_angstroms,
     #         range_in_percent= 10,
     #         step = 2
     #     )
     
-    # CASE: Isotropic Strain
-    strained_a_values, strained_c_values = \
-        setup_strain_arrays(
-            relaxed_a = a_angstroms, 
-            relaxed_c = c_angstroms,
-            range_in_percent= 10,
-            step = 2
-        )
-    
     # Random Displacements
     noise_level = 0.04
-    n_variant_structures = len(noise_levels)
     
-    # ======================= Dataset Creation ======================= #
-    # supercell_shape = (2, 1, 2)
-    # print(f"Creating input files for {supercell_shape}")
-    # for a in strained_a_values:
-    #     for covera in strained_covera_values:
-            
-    #         atoms = transform_unit_cell(supercell_shape=supercell_shape, a=a, covera=covera)
+    # ================================ Dataset =============================== #
 
-    #         # Numerate structures based on noise level
-    #         for idx in range(1, n_variant_structures+1):
-    #             make_pwscf_from_atoms(
-    #                 supercell = atoms.copy(),
-    #                 add_noise = True,
-    #                 noise_std_dev = noise_levels[idx-1],
-    #                 num_structure = idx
-    #             )
-    # print(f"Input files created.")
+    unique_supercells_shapes = get_irreducible_sc_shapes()
+    print("="*100 + f'\nUnique supercells shapes considering XY symmetry:\n')
+    for sc_shape in unique_supercells_shapes:
+        print(f'Creating inputs for {sc_shape}...')
+        for a in strained_a_values:
+            for covera in strained_covera_values:        
+                supercell = transform_primitive_cell(supercell_shape=sc_shape, a=a, covera=covera)
+                # Numerate structures based on noise level            
+                make_pwscf_from_atoms(supercell = supercell.copy(), noise_level=0.01, create_dir=False)
+    print('Done!\n')            
+    NUM_INPUTS = len(unique_supercells_shapes) * strained_a_values.size * strained_covera_values.size
+    print(f'{NUM_INPUTS} Quantum ESPRESSO input files created.\n'+"="*100)            
     
-    # ======================= 1 FILE Creation ======================= #
-    supercell_shape = (2, 2, 2)
-    supercell = transform_unit_cell(supercell_shape=supercell_shape, a=a_angstroms, c=c_angstroms)
-    make_pwscf_from_atoms(supercell, create_dir = False, noise_level=noise_level, num_structure=69)
-
