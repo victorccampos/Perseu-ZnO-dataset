@@ -1,0 +1,23 @@
+&general
+  PREFIX = ZnO222
+  MODE   = phonons
+  FCSXML = ZnO222.xml
+
+  NKD = 2; KD = Zn O
+  MASS = 65.380 15.999
+/
+
+&cell # (primitive cell => a)
+  6.1003                        # factor in Bohr unit 
+  1.0 0.0 0.0                   # a1
+  -0.5 0.866025 0.0             # a2
+  0.0 0.0 1.6115                # a3
+/
+
+&kpoint # G -> K -> M -> G -> A
+  1  # KPMODE = 1: line mode
+  G 0.0 0.0 0.0 K 0.3333 0.3333 0.00 51
+  K 0.3333 0.3333 0.00 M 0.50 0.00 0.00 51
+  M 0.50 0.00 0.00 G 0.0 0.0 0.0 51
+  G 0.0 0.0 0.0 A 0.0 0.00 0.50 51
+/
