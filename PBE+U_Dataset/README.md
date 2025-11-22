@@ -1,3 +1,5 @@
+Utilizando os pseudopotenciais GGA-PBE do PSLibrary
+
 # Otimização _vc-relax_
 - `ZnO_PBE+U_template.in`: é a estrutura relaxa via vc-relax com **PBE-GGA+U** :
 
