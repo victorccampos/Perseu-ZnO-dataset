@@ -17,7 +17,11 @@ O input foi criado com o `qeInputBuilder.py` modificando ao final:
 
  E no arquivo de template pra pegar as posições atômica usei o `ZnO_template_11.50_8.00.in`
 
-
+        CELL_PARAMETERS (alat=  6.17460000)
+        1.000475306   0.000000000   0.000000000
+        -0.500237653   0.866437031   0.000000000
+        0.000000000   0.000000000   1.597973765
+    
     ATOMIC_POSITIONS (crystal)
     Zn               0.6666666667        0.3333333333        0.4990735849
     Zn               0.3333333333        0.6666666667       -0.0009264151
