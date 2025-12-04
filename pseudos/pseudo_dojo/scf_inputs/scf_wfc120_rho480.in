@@ -1,0 +1,44 @@
+&control
+  calculation = 'scf',
+  pseudo_dir = '../',
+  outdir='./',
+  disk_io = 'none'
+  prefix = 'ZnO_lda',
+  tprnfor=.true.
+/
+&system
+  ibrav= 4,
+  celldm(1) = 6.122712203 
+  celldm(3) = 1.611111111
+  ntyp= 2,
+  nat= 4,
+  ecutwfc = 120,
+  ecutrho = 480,
+  occupations = 'fixed',
+  nbnd = 36 
+  ! nbnb = (2 átomos de Zn * 6 valencia) + (2 átomos de O * 4 valencia) 
+/
+&electrons
+  conv_thr= 1.0d-8,
+  mixing_beta=0.3,
+/
+ATOMIC_SPECIES
+Zn  65.380  Zn_pseudo-dojo_NC_SR_LDA.upf
+O   15.999  O_pseudo-dojo_NC_SR_LDA.upf
+
+ATOMIC_POSITIONS (crystal)
+ Zn   0.6666666666666661    0.3333333333333330    0.5005917000000000
+ Zn   0.3333333333333330    0.6666666666666661    0.0005916999999990
+  O   0.6666666666666661    0.3333333333333330    0.8797183000000000
+  O   0.3333333333333330    0.6666666666666661    0.3797182999999990
+ 
+! CELL_PARAMETERS {angstrom} ! not needed for ibrav = 0.
+!    3.267457590699776    0.0000000000000000   0.0000000000000000  ! v1 = (1, 0, 0) * a ; a = 3.2696917148002096 
+!   -1.633728795349888    2.8296999599857737   0.0000000000000000  ! v2 = (-1/2, sqrt(3)/2, 0) * a
+!    0.0000000000000000   0.0000000000000000   5.226625162083361   ! v3 = (0, 0, c/a) * a
+
+K_POINTS automatic
+6 6 4 0 0 0
+
+
+! Ref: https://github.com/victorccampos/Perseu-ZnO-dataset/blob/main/ZnO_system_preparation/data/relax1_22-04-25/pw.vc-relax.ZnO.in
