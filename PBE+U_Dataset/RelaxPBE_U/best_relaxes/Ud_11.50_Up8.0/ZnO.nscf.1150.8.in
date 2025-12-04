@@ -1,0 +1,39 @@
+&control
+  calculation = 'nscf',
+  pseudo_dir = '/home/jvc/QEspresso7.2/ZnO_database/pseudos',
+  outdir='./temp',
+  prefix = 'ZnO1150_8',
+  tprnfor=.true.
+/
+&system
+  ibrav= 4,
+  celldm(1) = 6.1775348244276 ! zno_vcrelax_hubbard_9.50_8.00.out
+  celldm(3) = 1.597973765 ! zno_vcrelax_hubbard_9.50_8.00.out
+  ntyp= 2,
+  nat= 4,
+  ecutwfc = 50,
+  ecutrho = 400,
+  occupations = 'fixed',
+  nbnd = 36 
+  ! nbnb = (2 átomos de Zn * 6 valencia) + (2 átomos de O * 4 valencia) 
+/
+&electrons
+  conv_thr= 1.0d-8,
+  mixing_beta=0.3,
+/
+ATOMIC_SPECIES
+Zn  65.380  Zn.upf
+O   15.999  O.upf
+
+ATOMIC_POSITIONS (crystal)
+Zn               0.6666666667        0.3333333333        0.4990735849
+Zn               0.3333333333        0.6666666667       -0.0009264151
+O                0.6666666667        0.3333333333        0.8812364151
+O                0.3333333333        0.6666666667        0.3812364151
+
+K_POINTS automatic
+12 12 8 0 0 0
+
+HUBBARD (ortho-atomic)
+U Zn-3d 11.50
+U O-2p 8.00

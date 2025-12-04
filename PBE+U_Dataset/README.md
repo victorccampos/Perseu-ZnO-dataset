@@ -1,4 +1,8 @@
-Utilizando os pseudopotenciais GGA-PBE do PSLibrary
+# DEPRACATED - 04 DEC 2025
+
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+Utilizando os pseudopotenciais GGA-PBE do PSLibrary => NÃO ESTÁ COM COM AS CONVERGÊNCIAS BOAS ECUTWFC E K-POINTS!
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 
 # Otimização _vc-relax_
 - `ZnO_PBE+U_template.in`: é a estrutura relaxa via vc-relax com **PBE-GGA+U** :
@@ -22,3 +26,6 @@ Melhor resultado .: `zno_vcrelax_hubbard_8.50_8.50.out`:
     3.33333507e-01 6.66667013e-01 3.79718305e-01  
 
 ---    
+
+
+# DEPRACATED - 04 DEC 2025
