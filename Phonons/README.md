@@ -15,3 +15,9 @@ This directory contains data and resources related to phonon calculations for Zn
 5. `anphon.in` $\rightarrow$ __ZnO222.bands__
 
 
+# Exp. Data
+
+`phonon-experimental-data-meV` : experimental data extracter from
+_Dielectric properties and Raman spectra of ZnO from a first principles finite-differences/finite-fields approach_
+
+`phonon-experimental-data-THz`: _Thermal Conductivity of Wurtzite Zinc-Oxide from First-Principles Lattice Dynamics - A Comparative Study with Gallium Nitride_
