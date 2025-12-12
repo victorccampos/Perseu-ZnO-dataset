@@ -152,6 +152,8 @@ if __name__ == "__main__":
     dfs_exp = load_experimental(paths=path_to_exp)
 
     # Plotting
+    # 40 = número de pontos interpolação.
+    # 7  => Γ K M Γ A H K
     gG = r"$\Gamma$"
     high_symmetry_points = [q[40 * i] for i in range(7)]
     high_symmetry_labels = [gG, "K", "M", gG, "A", "H", "K"]
