@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import pandas as pd
 
+plt.style.use("/home/jvc/QEspresso7.2/ZnO_database/mpl_themes/jvc.mplstyle")
+
 # CONVERSÃO UNIDADES
 INV_CM_TO_THZ = 0.029979
 INV_CM_TO_MEV = ase.units.invcm * 1_000
@@ -58,7 +60,7 @@ def load_experimental(paths: list[str]) -> list[pd.DataFrame]:
 
 
 def plot_phonons(
-    suptitle: str,
+    title: str,
     q: np.ndarray,
     freqs_mev: np.ndarray,
     dfs_exp: list[pd.DataFrame],
@@ -71,12 +73,8 @@ def plot_phonons(
     secundátio em THz
     """
 
-    # Configurações gráficas
-    plt.rcParams["font.family"] = "serif"
-    plt.rcParams["axes.linewidth"] = 1.5
-
-    fig, ax = plt.subplots(figsize=(6, 5), dpi=1200)
-    fig.suptitle(suptitle, fontsize=14)
+    fig, ax = plt.subplots(figsize=(6, 5), dpi=600)
+    ax.set_title(title, pad=10)
 
     # -------------------------
     # 1. DFPT (curvas)
@@ -106,30 +104,30 @@ def plot_phonons(
 
     # -------------------------
     # 4. Eixos principais
-    ax.set_ylabel("Frequência (meV)", labelpad=10, fontsize=14)
+    ax.set_ylabel("Frequência (meV)", labelpad=10)
     ax.set_xlabel("")
     ax.set_xlim(high_symmetry_points[0], high_symmetry_points[-1])
     ax.set_ylim([0, 80])
-    ax.set_xticks(ticks=high_symmetry_points, labels=high_symmetry_labels, fontsize=14)
+    ax.set_xticks(ticks=high_symmetry_points, labels=high_symmetry_labels)
 
     # Ticks Y em meV
     ax.yaxis.set_major_locator(MultipleLocator(10))
     ax.yaxis.set_minor_locator(AutoMinorLocator(5))
-    ax.tick_params(axis="y", which="major", direction="in", length=6, width=1.0)
-    ax.tick_params(axis="y", which="minor", direction="in", length=3, width=1.0)
-    ax.tick_params(axis="x", which="major", direction="inout", length=6, width=1.0)
-    ax.tick_params(axis="y", labelsize=14)
+    ax.tick_params(
+        axis="y", which="major", direction="in", length=6, width=1.0, right=False
+    )
+    ax.tick_params(
+        axis="y", which="minor", direction="in", length=3, width=1.0, right=False
+    )
+    ax.tick_params(axis="x", which="major", direction="in", length=6, width=1.0)
 
     # -------------------------
     # 5. Eixo secundário em THz
     secax = ax.secondary_yaxis("right", functions=(meV2THz, THz2meV))
-    secax.set_ylabel("Frequência (THz)", labelpad=10, fontsize=14)
+    secax.set_ylabel("Frequência (THz)")
     secax.set_ylim([0, 22])
     secax.yaxis.set_major_locator(MultipleLocator(2))
     secax.yaxis.set_minor_locator(AutoMinorLocator(5))
-    secax.tick_params(axis="y", which="major", direction="in", length=6, width=1.0)
-    secax.tick_params(axis="y", which="minor", direction="in", length=3, width=1.0)
-    secax.tick_params(axis="y", labelsize=14)
 
     # -------------------------
     plt.tight_layout()
@@ -152,14 +150,12 @@ if __name__ == "__main__":
     dfs_exp = load_experimental(paths=path_to_exp)
 
     # Plotting
-    # 40 = número de pontos interpolação.
-    # 7  => Γ K M Γ A H K
     gG = r"$\Gamma$"
-    high_symmetry_points = [q[40 * i] for i in range(7)]
     high_symmetry_labels = [gG, "K", "M", gG, "A", "H", "K"]
+    high_symmetry_points = [q[40 * i] for i in range(len(high_symmetry_labels))]
 
     plot_phonons(
-        suptitle="LDA DFPT",
+        title="LDA DFPT",
         q=q,
         freqs_mev=freqs_mev,
         dfs_exp=dfs_exp,
