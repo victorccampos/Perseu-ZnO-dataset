@@ -65,6 +65,7 @@ def plot_bands(
     ax.legend()
     fig.tight_layout()
     fig.savefig("LDA_bandstructure.png", format="png", bbox_inches="tight")
+    fig.savefig("LDA_bandstructure.pdf", format="pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":

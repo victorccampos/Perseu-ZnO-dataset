@@ -73,7 +73,7 @@ def plot_phonons(
     secundátio em THz
     """
 
-    fig, ax = plt.subplots(figsize=(6, 5), dpi=600)
+    fig, ax = plt.subplots(figsize=(6, 5), dpi=600, layout="constrained")
     ax.set_title(title, pad=10)
 
     # -------------------------
@@ -124,21 +124,23 @@ def plot_phonons(
     # -------------------------
     # 5. Eixo secundário em THz
     secax = ax.secondary_yaxis("right", functions=(meV2THz, THz2meV))
-    secax.set_ylabel("Frequência (THz)")
+    secax.set_ylabel("THz")
     secax.set_ylim([0, 22])
     secax.yaxis.set_major_locator(MultipleLocator(2))
     secax.yaxis.set_minor_locator(AutoMinorLocator(5))
 
     # -------------------------
-    plt.tight_layout()
-    plt.savefig(image_output, format="png")
+    # plt.tight_layout()
+    plt.savefig(image_output, bbox_inches="tight")
     plt.show()
 
 
 if __name__ == "__main__":
     # Path to data
     QE_FREQS_PATH = "ZnO.freq.gp"
-    EXP_DIR = "../phononDFPT_U/phonon-experimental-data-meV"
+    EXP_DIR = (
+        "../../DFT_LDAU/phononDFPT_U/phonon-experimental-data-meV"  # TODO: HARDCODED
+    )
 
     path_to_exp: list[str] = [
         f"{EXP_DIR}/expdata_red_squares.csv",
@@ -161,5 +163,5 @@ if __name__ == "__main__":
         dfs_exp=dfs_exp,
         high_symmetry_points=high_symmetry_points,
         high_symmetry_labels=high_symmetry_labels,
-        image_output="ZnO_phonons_LDA_DFPT_vs_experimental.png",
+        image_output="ZnO_phonons_LDA_DFPT_vs_experimental.pdf",
     )
