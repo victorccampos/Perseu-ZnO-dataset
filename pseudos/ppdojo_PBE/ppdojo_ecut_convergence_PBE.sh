@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export OMP_NUM_THREADS=1
-
+template_file="ZnO_PBE_template.in"
 
 # Criação dos inputs.
 echo "Processo iniciado. $(date +%F' '%T)"
@@ -11,7 +11,7 @@ for ecutwfc in {20..150..10}; do
 ecutrho=$((4 * $ecutwfc)) 
 
 sed -e 's/ECUTWFC/'"$ecutwfc"'/g' \
-    -e 's/ECUTRHO/'"$ecutrho"'/g' ZnO_LDA_template.in > scf_wfc${ecutwfc}_rho${ecutrho}.in
+    -e 's/ECUTRHO/'"$ecutrho"'/g' $template_file > scf_wfc${ecutwfc}_rho${ecutrho}.in
 done
 echo "Criando diretório para os inputs"
 mkdir -p "scf_inputs"
