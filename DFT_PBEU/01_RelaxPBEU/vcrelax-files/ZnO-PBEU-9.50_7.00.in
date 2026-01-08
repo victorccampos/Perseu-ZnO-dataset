@@ -1,0 +1,58 @@
+&CONTROL
+  calculation = 'vc-relax'
+  restart_mode = 'from_scratch'
+  pseudo_dir = '/home/jvc/ZnO_database/pseudos/ppdojo_PBE'
+  outdir = '.'
+  prefix = 'ZnO_PBEU'
+  disk_io = 'none'
+  nstep = 300
+  verbosity = 'high'
+  tstress = .true.
+  tprnfor = .true.
+  etot_conv_thr = 1.0d-8
+  forc_conv_thr = 1.0d-4
+/
+&SYSTEM
+    ibrav= 4
+    celldm(1) = 6.1999 
+    celldm(3) = 1.5999 
+    ntyp= 2
+    nat=  4
+    ecutwfc =  80
+    ecutrho = 320
+    occupations = 'fixed'
+    nbnd =  36
+    degauss = 0.005
+/
+&ELECTRONS
+    diagonalization = 'david'
+    mixing_mode='local-TF'
+    conv_thr = 1.0d-12
+    mixing_beta = 0.3
+    electron_maxstep = 120
+/
+/
+&IONS
+  ion_dynamics = 'bfgs'
+/
+&CELL
+  cell_dynamics = 'bfgs'
+  press_conv_thr  = 0.5d0 ! Unidade KBar
+  cell_dofree='ibrav'
+/
+ATOMIC_SPECIES
+Zn   65.380    Zn_ppdojo_SR_NC_PBE.upf
+ O   15.999    O_ppdojo_SR_NC_PBE.upf
+
+K_POINTS automatic
+6 6 4  0  0  0
+
+ATOMIC_POSITIONS (crystal)
+Zn   0.3333333333   0.6666666667   0.0000000000
+Zn   0.6666666667   0.3333333333   0.5000000000
+O    0.3333333333   0.6666666667   0.3800000000  ! u parameter aprox 0.38
+O    0.6666666667   0.3333333333   0.8800000000
+
+HUBBARD (atomic)
+U Zn-3d 9.50
+U O-2p 7.00
