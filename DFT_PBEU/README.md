@@ -34,4 +34,3 @@ Vou verificar como estão as forças nesses arquivos. (**OK**)
 Vou fabricar um scf com $U_d = 9.50$ e $U_p = 7.50$ e fazer a ***PDOS***; aquele que mais se aproximar da figura do artigo eu escolho.
 
 Tô fazendo assim, pois acho que é melhor se basear *"experimentalmente"* na localização dos estados eletrônicos do que fazer bandas e fônons.
-
