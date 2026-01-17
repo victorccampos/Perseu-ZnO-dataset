@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import pandas as pd
 
-plt.style.use("/home/jvc/QEspresso7.2/ZnO_database/mpl_themes/jvc.mplstyle")
+plt.style.use("/home/jvc/ZnO_database/mpl_themes/jvc.mplstyle")
 
 # CONVERSÃO UNIDADES
 INV_CM_TO_THZ = 0.029979
@@ -131,14 +131,14 @@ def plot_phonons(
 
     # -------------------------
     plt.tight_layout()
-    plt.savefig(image_output, format="png")
+    plt.savefig(image_output)
     plt.show()
 
 
 if __name__ == "__main__":
     # Path to data
     QE_FREQS_PATH = "ZnO.freq.gp"
-    EXP_DIR = "../phononDFPT_U/phonon-experimental-data-meV"
+    EXP_DIR = "./phonon-experimental-data-meV"
 
     path_to_exp: list[str] = [
         f"{EXP_DIR}/expdata_red_squares.csv",
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     gG = r"$\Gamma$"
     high_symmetry_labels = [gG, "K", "M", gG, "A", "H", "K"]
     high_symmetry_points = [q[40 * i] for i in range(len(high_symmetry_labels))]
-
+    gallery_path = r"/home/jvc/ZnO_database/gallery"
     plot_phonons(
         title="LDA DFPT+U",
         q=q,
@@ -161,5 +161,5 @@ if __name__ == "__main__":
         dfs_exp=dfs_exp,
         high_symmetry_points=high_symmetry_points,
         high_symmetry_labels=high_symmetry_labels,
-        image_output="ZnO_phonons_LDAU_DFPT_vs_experimental.png",
+        image_output=f"{gallery_path}/ZnO_phonons_LDAU_DFPT_vs_experimental.pdf",
     )
