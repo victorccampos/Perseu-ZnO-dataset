@@ -6,9 +6,6 @@ from pathlib import Path
 import subprocess
 from datetime import date, datetime
 
-from pprint import pprint
-
-
 def run_qe_jobs(
     input_files: list[Path],
     output_dir: Path,
@@ -27,13 +24,13 @@ def run_qe_jobs(
         npools (int): Número de pools de FFT.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
-    exe = str(executable_path.expanduser()) if executable_path else "pw.x"
+    qe_exe = "pw.x"
 
     for input_path in input_files:
         output_path = output_dir / input_path.with_suffix('.out').name
         command_line = [
             "mpirun", "-np", str(num_processes),
-            exe, "-npools", str(npools), "-nd", str(ndiag),
+            qe_exe, "-npools", str(npools), "-nd", str(ndiag),
             "-in", str(input_path)
         ]
 
@@ -75,10 +72,9 @@ def get_irreducible_sc_shapes() -> list[np.ndarray]:
     return combinations
 
 if __name__ == '__main__':
-    INPUT_DIR = Path('crystalline_structures.in')
-    OUTPUT_DIR = INPUT_DIR.with_suffix('.out')
+    INPUT_DIR = Path('LDA_Dataset_Inputs')
+    OUTPUT_DIR = Path('LDA_Dataset_Outputs')
     # MPIRUN 
-    PW_BINARY = Path('~/pw_intel.x')
     NP = 32
     NPOOLS = 8
     NDIAG = 4
@@ -94,7 +90,7 @@ if __name__ == '__main__':
  
       
     run_qe_jobs(supercells_to_run, OUTPUT_DIR,
-     num_processes=NP, npools=NPOOLS, ndiag=NDIAG, executable_path=PW_BINARY
+     num_processes=NP, npools=NPOOLS, ndiag=NDIAG
     )
     
 
