@@ -104,7 +104,7 @@ def plot_phonons(
 
     # -------------------------
     # 4. Eixos principais
-    ax.set_ylabel("Frequência (meV)", labelpad=10)
+    ax.set_ylabel("Frequency (meV)", labelpad=10)
     ax.set_xlabel("")
     ax.set_xlim(high_symmetry_points[0], high_symmetry_points[-1])
     ax.set_ylim([0, 85])
@@ -124,7 +124,7 @@ def plot_phonons(
     # -------------------------
     # 5. Eixo secundário em THz
     secax = ax.secondary_yaxis("right", functions=(meV2THz, THz2meV))
-    secax.set_ylabel("Frequência (THz)")
+    secax.set_ylabel("Frequency (THz)")
     secax.set_ylim([0, 22])
     secax.yaxis.set_major_locator(MultipleLocator(2))
     secax.yaxis.set_minor_locator(AutoMinorLocator(5))
@@ -161,5 +161,5 @@ if __name__ == "__main__":
         dfs_exp=dfs_exp,
         high_symmetry_points=high_symmetry_points,
         high_symmetry_labels=high_symmetry_labels,
-        image_output=f"{gallery_path}/ZnO_phonons_LDAU_DFPT_vs_experimental.pdf",
+        image_output=f"{gallery_path}/ZnO-phonons-LDAU-DFPT-vs-experimental.pdf",
     )

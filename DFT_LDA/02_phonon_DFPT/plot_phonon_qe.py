@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import pandas as pd
 
-plt.style.use("/home/jvc/QEspresso7.2/ZnO_database/mpl_themes/jvc.mplstyle")
+plt.style.use("/home/jvc/ZnO_database/mpl_themes/jvc.mplstyle")
 
 # CONVERSÃO UNIDADES
 INV_CM_TO_THZ = 0.029979
@@ -104,7 +104,7 @@ def plot_phonons(
 
     # -------------------------
     # 4. Eixos principais
-    ax.set_ylabel("Frequência (meV)", labelpad=10)
+    ax.set_ylabel("Frequency (meV)", labelpad=10)
     ax.set_xlabel("")
     ax.set_xlim(high_symmetry_points[0], high_symmetry_points[-1])
     ax.set_ylim([0, 80])
@@ -124,7 +124,7 @@ def plot_phonons(
     # -------------------------
     # 5. Eixo secundário em THz
     secax = ax.secondary_yaxis("right", functions=(meV2THz, THz2meV))
-    secax.set_ylabel("THz")
+    secax.set_ylabel("Frequency (THz)")
     secax.set_ylim([0, 22])
     secax.yaxis.set_major_locator(MultipleLocator(2))
     secax.yaxis.set_minor_locator(AutoMinorLocator(5))
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     # Path to data
     QE_FREQS_PATH = "ZnO.freq.gp"
     EXP_DIR = (
-        "../../DFT_LDAU/phononDFPT_U/phonon-experimental-data-meV"  # TODO: HARDCODED
+        "/home/jvc/ZnO_database/DFT_LDAU/02_Phonons/phonon-experimental-data-meV"
     )
 
     path_to_exp: list[str] = [
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     gG = r"$\Gamma$"
     high_symmetry_labels = [gG, "K", "M", gG, "A", "H", "K"]
     high_symmetry_points = [q[40 * i] for i in range(len(high_symmetry_labels))]
-
+    gallery = "/home/jvc/ZnO_database/gallery"
     plot_phonons(
         title="LDA DFPT",
         q=q,
@@ -163,5 +163,5 @@ if __name__ == "__main__":
         dfs_exp=dfs_exp,
         high_symmetry_points=high_symmetry_points,
         high_symmetry_labels=high_symmetry_labels,
-        image_output="ZnO_phonons_LDA_DFPT_vs_experimental.pdf",
+        image_output=f"{gallery}/ZnO_phonons_LDA_DFPT_vs_experimental.pdf",
     )
