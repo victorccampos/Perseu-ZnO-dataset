@@ -1,0 +1,38 @@
+  &CONTROL
+  calculation      = 'scf'
+  verbosity        = 'high'
+  tprnfor          = .true.
+  outdir           = './tmp_qe'
+  prefix           = 'ZnO_PBEU_NEB'
+  pseudo_dir       = '/home/jvc/ZnO_database/pseudos/ppdojo_PBE'
+  /
+  &SYSTEM
+  nbnd             = 36
+  ecutwfc          = 80
+  ecutrho          = 320
+  occupations      = 'fixed'
+  ntyp             = 2
+  nat              = 4
+  ibrav            = 0
+  /
+  &ELECTRONS
+  conv_thr         = 1.0d-8
+  mixing_beta      = 0.3
+  /
+  ATOMIC_SPECIES
+  Zn 65.38 Zn_ppdojo_SR_NC_PBE.upf
+  O  15.999 O_ppdojo_SR_NC_PBE.upf
+  CELL_PARAMETERS angstrom
+  3.24372094704721  0.00000000000000  0.00000000000000
+  -1.62186047516403  2.80914474180629  0.00000000000000
+  0.00000000000000  0.00000000000000  5.18900983313832
+      ATOMIC_POSITIONS crystal
+      Zn 0.3333333333 0.6666666667  0.9992001700
+      Zn 0.6666666667 0.3333333333  0.4992001701
+      O  0.3333333333 0.6666666667  0.3807998299
+      O  0.6666666667 0.3333333333  0.8807998299
+  K_POINTS automatic
+  6 6 4  0 0 0
+  HUBBARD (atomic)
+  U Zn-3d 9.5
+  U O-2p  7.5
