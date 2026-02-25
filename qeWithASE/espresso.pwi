@@ -1,0 +1,48 @@
+&CONTROL
+   calculation      = 'scf'
+   verbosity        = 'high'
+   tstress          = .true.
+   tprnfor          = .true.
+   outdir           = './'
+   prefix           = 'ZnO_LDA'
+   disk_io          = 'none'
+   pseudo_dir       = '/home/jvc/ZnO_database/pseudos/ppdojo_LDA/'
+/
+&SYSTEM
+   ibrav            = 0
+   ecutwfc          = 80
+   ecutrho          = 320
+   occupations      = 'fixed'
+   ntyp             = 2
+   nat              = 4
+/
+&ELECTRONS
+   conv_thr         = 1e-08
+   mixing_beta      = 0.3
+/
+&IONS
+/
+&CELL
+/
+&FCP
+/
+&RISM
+/
+ATOMIC_SPECIES
+Zn 65.38 Zn_pseudo-dojo_NC_SR_LDA.upf
+O 15.999 O_pseudo-dojo_NC_SR_LDA.upf
+
+K_POINTS automatic
+6 6 4  0 0 0
+
+CELL_PARAMETERS angstrom
+3.25000000000000 0.00000000000000 0.00000000000000
+-1.62500000000000 2.81458256229943 0.00000000000000
+0.00000000000000 0.00000000000000 5.21000000000000
+
+ATOMIC_POSITIONS angstrom
+Zn 0.0000000000 0.0000000000 0.0000000000  
+O -0.0000000000 1.8763883749 0.6267162508  
+Zn -0.0000000000 1.8763883749 2.6050000000  
+O 0.0000000000 0.0000000000 3.2317162508  
+
