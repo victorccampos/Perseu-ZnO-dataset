@@ -74,7 +74,7 @@ def write_pwscf(supercell: Atoms, config: dict, noise: float = 0.0) -> None:
             f"U Zn-3d {config.get('U_Zn')}",
             f"U O-2p {config.get('U_O')}",
         ]
-
+    print(f"Escrevendo: {filename}")
     write_espresso_in(
         file=filename,
         atoms=supercell,
@@ -89,15 +89,15 @@ def write_pwscf(supercell: Atoms, config: dict, noise: float = 0.0) -> None:
     if displacements is not None:
         with open(filename, "a") as f:
             symbols = supercell.get_chemical_symbols()
-            f.write("\n! ========================================================\n")
-            f.write("! Gaussian random displacements added \n")
-            f.write(f"! Random seed = {seed} (std={noise:.3f} Å)\n")
-            f.write("! Format: atom_index   symbol   dx   dy   dz   (Å)\n")
+            f.write("# ========================================================\n")
+            f.write("# Gaussian random displacements added \n")
+            f.write(f"# Random seed = {seed} (std={noise:.3f} Å)\n")
+            f.write("# Format: atom_index   symbol   dx   dy   dz   (Å)\n")
             for i, (sym, d) in enumerate(zip(symbols, displacements)):
                 f.write(
-                    f"! {i + 1:3d}   {sym:2s}   {d[0]: .6f}   {d[1]: .6f}   {d[2]: .6f}\n"
+                    f"# {i + 1:3d}   {sym:2s}   {d[0]: .6f}   {d[1]: .6f}   {d[2]: .6f}\n"
                 )
-            f.write("! ========================================================\n")
+            f.write("# ========================================================\n")
 
     return
 
@@ -114,6 +114,7 @@ def create_dataset_files(template_path: str, config: dict, noise: float = 0.00) 
     print(f"{' Iniciando a geração dos arquivos ':=^60}")
 
     count = 0
+
     for shape, a, covera in product(shapes, strains_a, strains_covera):
         supercell = get_supercell(prim_cell, shape, a, covera)
         write_pwscf(supercell, config, noise=noise)
@@ -146,7 +147,12 @@ if __name__ == "__main__":
         },
         "k_grid": (6, 6, 4),
         "hubbard": False,
+        "U_Zn": 9.50,
+        "U_O": 7.50,
     }
 
     template = "/home/jvc/ZnO_database/DFT_LDA/02_phonon_DFPT/vcrelax.out"
-    create_dataset_files(template_path=template, config=qe_config, noise=0.0)
+
+    noises = [0.04, 0.06, 0.12]
+    for noise in noises:
+        create_dataset_files(template_path=template, config=qe_config, noise=0.04)
