@@ -43,15 +43,23 @@ def setup_hubbard(U_Zn: float, U_O: float) -> list[str]:
     return qe_hubbard_card
 
 
-def get_shapes() -> list[tuple]:
-    """Retorna as formas únicas de supercélulas considerando a simetria XY."""
-    ni = [1, 2, 3]
-    # Filtra mantendo nx >= ny e ordena pelo número total de átomos.
-    shapes = [shape for shape in product(ni, ni, ni) if shape[0] >= shape[1]]
+def get_shapes(ni: list[int], max_volume: int = 10) -> list[tuple]:
+    """
+    Retorna formas de supercélulas únicas filtradas por volume.
+    max_volume: Limite do produto (nx * ny * nz).
+    Ex: 10 permite (3,3,1) mas bloqueia (3,2,2) que é 12.
+    """
+    shapes = [
+        shape
+        for shape in product(ni, ni, ni)
+        if shape[0] >= shape[1] and np.prod(shape) <= max_volume
+    ]
     return sorted(shapes, key=np.prod)
 
 
-def write_pwscf(supercell: Atoms, config: dict, noise: float = 0.0) -> None:
+def write_pwscf(
+    supercell: Atoms, config: dict, kpts: tuple, noise: float = 0.0
+) -> None:
     shape_str = "".join(map(str, supercell.info["shape"]))
     a = supercell.info["prim_a"]
     covera = supercell.info["prim_covera"]
@@ -80,7 +88,7 @@ def write_pwscf(supercell: Atoms, config: dict, noise: float = 0.0) -> None:
         atoms=supercell,
         input_data=config["input_data"],
         pseudopotentials=config["pseudos"],
-        kpts=config["k_grid"],
+        kpts=kpts,  # Calculado dinamicamente.
         koffset=(0, 0, 0),
         crystal_coordinates=True,
         additional_cards=additional_cards,
@@ -102,7 +110,9 @@ def write_pwscf(supercell: Atoms, config: dict, noise: float = 0.0) -> None:
     return
 
 
-def create_dataset_files(template_path: str, config: dict, noise: float = 0.00) -> None:
+def create_dataset_inputs(
+    template_path: str, config: dict, noise: float = 0.00
+) -> None:
     """Gera o dataset de estruturas com deformações e deslocamentos aleatórios para várias supercélulas."""
     prim_cell: Atoms = read(template_path)
     relaxed_a, _, relaxed_c = prim_cell.cell.lengths()
@@ -110,14 +120,19 @@ def create_dataset_files(template_path: str, config: dict, noise: float = 0.00) 
     strains_a = setup_strain(relaxed_a)
     strains_covera = setup_strain(relaxed_c / relaxed_a)
 
-    shapes = get_shapes()
+    shapes = get_shapes(ni=[1, 2, 3], max_volume=10)
+    base_k = config["k_grid"]
     print(f"{' Iniciando a geração dos arquivos ':=^60}")
 
     count = 0
 
     for shape, a, covera in product(shapes, strains_a, strains_covera):
         supercell = get_supercell(prim_cell, shape, a, covera)
-        write_pwscf(supercell, config, noise=noise)
+
+        # K-Grid adaptável
+        adapted_k = tuple(max(1, int(base_k[i] / shape[i])) for i in range(3))
+
+        write_pwscf(supercell, config, kpts=adapted_k, noise=noise)
         count += 1
 
     print(
@@ -133,8 +148,9 @@ if __name__ == "__main__":
             "pseudo_dir": "/home/jvc/ZnO_database/pseudos/ppdojo_LDA/",
             "outdir": "./",
             "disk_io": "none",
-            "verbosity": "high",
+            "verbosity": "low",
             "tprnfor": True,
+            "tstress": True,
         },
         "system": {"ibrav": 0, "ecutwfc": 80, "ecutrho": 320, "occupations": "fixed"},
         "electrons": {"conv_thr": 1.0e-8, "mixing_beta": 0.3},
@@ -153,6 +169,7 @@ if __name__ == "__main__":
 
     template = "/home/jvc/ZnO_database/DFT_LDA/02_phonon_DFPT/vcrelax.out"
 
-    noises = [0.04, 0.06, 0.12]
+    noises = [0.0]
+    # noises = [0.04, 0.06, 0.12]
     for noise in noises:
-        create_dataset_files(template_path=template, config=qe_config, noise=0.04)
+        create_dataset_inputs(template_path=template, config=qe_config, noise=noise)
