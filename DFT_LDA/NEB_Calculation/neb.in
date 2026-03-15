@@ -1,0 +1,69 @@
+BEGIN
+
+  BEGIN_PATH_INPUT
+  &PATH
+    restart_mode = 'from_scratch'
+    string_method = 'neb'     ! default
+    num_of_images = 7         ! Number of points used to discretize the path (>= 3)
+    opt_scheme = 'broyden'    ! quasi-Newton Broyden's second method (suggested)
+    CI_scheme = 'no-CI'       ! climbing image is not used
+    nstep_path = 5            ! number of ionic + electronic steps  
+    path_thr = 0.05           ! The sim. stops when the error is less than path_thr; (norm(F_{ortho-to-path}) in eV/A) 
+    !k_min = 0.4112            ! Variable Elastic Constants scheme minimum value
+    !k_max = 0.0500            ! Variable Elastic Constants scheme maximum value
+  /
+  END_PATH_INPUT
+
+  BEGIN_ENGINE_INPUT
+  &CONTROL
+  calculation      = 'scf'
+  verbosity        = 'high'
+  tprnfor          = .true.
+  outdir           = './tmp_qe'
+  prefix           = 'ZnO_LDA_NEB'
+  pseudo_dir       = '/home/jvc/ZnO_database/pseudos/ppdojo_LDA'
+  /
+  &SYSTEM
+  nbnd             = 36
+  ecutwfc          = 80
+  ecutrho          = 320
+  occupations      = 'fixed'
+  ntyp             = 2
+  nat              = 4
+  ibrav            = 0
+  /
+  &ELECTRONS
+  conv_thr         = 1.0d-8
+  mixing_beta      = 0.3
+  /
+
+  ATOMIC_SPECIES
+  Zn 65.38 Zn_pseudo-dojo_NC_SR_LDA.upf
+  O  15.999 O_pseudo-dojo_NC_SR_LDA.upf
+
+  CELL_PARAMETERS angstrom
+  3.19617831144563 0.00000000000000 0.00000000000000
+  -1.59808915572282 2.76797161332331 0.00000000000000
+  0.00000000000000 0.00000000000000 5.13145971096848
+
+  BEGIN_POSITIONS
+    FIRST_IMAGE
+      ATOMIC_POSITIONS crystal
+      Zn 0.3333333333 0.6666666667 0.99984402  ! 0.99984402 == -0.0001559752 (original)
+      Zn 0.6666666667 0.3333333333 0.4998440248  
+      O 0.3333333333 0.6666666667 0.3801559752  
+      O 0.6666666667 0.3333333333 0.8801559752
+      
+      LAST_IMAGE 
+      ATOMIC_POSITIONS crystal
+      Zn 0.3333333333 0.6666666667 0.9399999976  
+      Zn 0.6666666667 0.3333333333 0.440000000  
+      O 0.3333333333 0.6666666667 0.440000000  
+      O 0.6666666667 0.3333333333 0.9399999976  
+      
+  END_POSITIONS
+  K_POINTS automatic
+  6 6 4  0 0 0
+
+  END_ENGINE_INPUT
+END
