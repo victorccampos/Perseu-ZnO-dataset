@@ -1,7 +1,7 @@
 &control
     calculation = 'scf',
-    prefix = 'O_atom',
-    pseudo_dir = '/home/jvc/QEspresso7.2/ZnO_database/pseudos'
+    prefix = 'Zn_atom',
+    pseudo_dir = '/home/jvc/ZnO_database/pseudos/ppdojo_LDA/'
     outdir = './'
 /
 &system
@@ -9,8 +9,8 @@
     celldm(1) = 30.0,    ! caixa cúbica com aresta = celldm(1)*a0 ≈ 30 a0 ~ 15.9 Å
     nat = 1,
     ntyp = 1,
-    ecutwfc = 50,      
-    ecutrho = 400,     
+    ecutwfc = 80,      
+    ecutrho = 320,     
     occupations = 'fixed',
 /
 &electrons
@@ -18,9 +18,9 @@
     mixing_beta = 0.3,
 /
 ATOMIC_SPECIES
- O  15.999  O.upf
+Zn 65.380 Zn_pseudo-dojo_NC_SR_LDA.upf
 
 ATOMIC_POSITIONS angstrom
- O  0.0 0.0 0.0
+ Zn  0.0 0.0 0.0
 
 K_POINTS {gamma}
