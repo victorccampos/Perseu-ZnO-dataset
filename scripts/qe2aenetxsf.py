@@ -42,15 +42,18 @@ def qe2xsf(scf_out: Path | str) -> str:
 
 
 if __name__ == "__main__":
-    pwos = sorted(Path("/home/jvc/ZnO_database/data").rglob("LDA_*_OUTPUTS/*.out"))
+    data_dir = Path("/home/jvc/ZnO_database/data/LDA_QE_STRUCTURES")
+    pwos_pattern = "LDA_*_OUTPUTS/*.out"
 
-    xsf_dir = Path("LDA_AENET_DATASET")
+    pwos: list[Path] = sorted(data_dir.rglob(pwos_pattern))
+
+    xsf_dir = Path("LDA_xsf_structures")
     xsf_dir.mkdir(exist_ok=True)
 
     for idx, p in enumerate(pwos, 1):
         try:
             xsf_content = qe2xsf(p)
-            fname = xsf_dir / f"LDA-{p.stem}-{idx:04d}.xsf"
+            fname = xsf_dir / f"LDA-{idx:04d}.xsf"
 
             with open(fname, "w") as f:
                 f.write(xsf_content)
