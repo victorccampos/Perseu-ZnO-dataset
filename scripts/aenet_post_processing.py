@@ -18,7 +18,6 @@ class AenetPP:
         self.train_out: str | Path = train_out
         self.predict_out: str | Path = predict_out
 
-    # Eval of training.
     def get_loss(self) -> pd.DataFrame:
         errors = []
         with open(self.train_out) as fp:
@@ -136,6 +135,7 @@ class AenetPP:
                     atom, x, y, z, fx, fy, fz = parts
                     data.append([filename, float(fx), float(fy), float(fz)])
         df = pd.DataFrame(data, columns=["structure", "Fx_DFT", "Fy_DFT", "Fz_DFT"])
+        df["|F|_DFT"] = np.sqrt(df.Fx_DFT**2 + df.Fy_DFT**2 + df.Fz_DFT**2)
         return df
 
     # Predict
@@ -145,17 +145,21 @@ class AenetPP:
         # Captura: nome do arquivo .xsf, energia total
         pattern = (
             r"File name\s*:\s*(\S+\.xsf).*?"
+            r"Number of atoms\s*:\s*(\d+).*?"
             r"Total energy\s*:\s*([-\d.]+).*?"
             # r"RMS force\s*:\s*([-\d.]+)"
         )
 
         matches = re.findall(pattern, text, re.S)
 
-        df = pd.DataFrame(matches, columns=["filename", "E_ANN (eV)"])
-        df["E_ANN (eV)"] = df["E_ANN (eV)"].astype(float)
-        df["filename"] = df["filename"].apply(lambda x: Path(x).name)
+        df = pd.DataFrame(matches, columns=["filename", "n_atoms", "E_ANN (eV)"])
 
-        return df
+        df["filename"] = df["filename"].apply(lambda x: Path(x).name)
+        df["E_ANN (eV)"] = df["E_ANN (eV)"].astype(float)
+        df["n_atoms"] = df["n_atoms"].astype(int)
+        df["E_ANN (eV/atom)"] = df["E_ANN (eV)"] / df["n_atoms"]
+
+        return df[["filename", "E_ANN (eV/atom)"]]
 
     def get_predict_forces(self) -> pd.DataFrame:
         """Lê predict.out do ænet e retorna DataFrame com nome da estrutura e forças (Fx, Fy, Fz)."""
@@ -178,4 +182,40 @@ class AenetPP:
                 data.append([structure, float(fx), float(fy), float(fz)])
 
         df = pd.DataFrame(data, columns=["structure", "Fx_ANN", "Fy_ANN", "Fz_ANN"])
+        df["|F|_ANN"] = np.sqrt(df.Fx_ANN**2 + df.Fy_ANN**2 + df.Fz_ANN**2)
+
         return df
+
+    def get_energy_parity(self) -> pd.DataFrame:
+        """
+        Return a Dataframe comparing energies of DFT vs ANN.
+        """
+
+        if not self.predict_out:
+            print("predict.out is not defined!")
+            return None
+
+        energies_nn = self.get_predict_energies()
+        energies_dft = self.get_xsf_energies("test")
+
+        df_parity_energy = pd.concat(
+            [energies_dft, energies_nn.drop(columns="filename")], axis=1
+        )
+
+        return df_parity_energy
+
+    def get_forces_parity(self) -> pd.DataFrame:
+        """Return a DataFrame comparing forces of DFT vs ANN."""
+
+        if not self.predict_out:
+            print("predict.out is not defined!")
+            return None
+
+        test_forces = self.get_xsf_forces("test")
+        predict_forces = self.get_predict_forces()
+
+        forces_df = pd.concat(
+            [test_forces, predict_forces.drop("structure", axis=1)], axis=1
+        )
+
+        return forces_df
