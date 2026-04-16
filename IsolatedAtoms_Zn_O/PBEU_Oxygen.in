@@ -1,0 +1,31 @@
+&control
+    calculation = 'scf',
+    prefix = 'O_atom',
+    pseudo_dir = '/home/jvc/ZnO_database/pseudos/ppdojo_PBE/'
+    outdir = './'
+    disk_io = 'none'
+    verbosity = 'high'
+/
+&system
+    ibrav = 1,
+    celldm(1) = 30.0,    ! caixa cúbica com aresta = celldm(1)*a0 ≈ 30 a0 ~ 15.9 Å
+    nat = 1,
+    ntyp = 1,
+    ecutwfc = 80,      
+    ecutrho = 320,     
+    occupations = 'fixed',
+/
+&electrons
+    conv_thr = 1.0d-8,
+    mixing_beta = 0.3,
+/
+ATOMIC_SPECIES
+ O  15.999  O_ppdojo_SR_NC_PBE.upf
+
+ATOMIC_POSITIONS angstrom
+ O  0.0 0.0 0.0
+
+K_POINTS {gamma}
+
+HUBBARD (atomic)
+U O-2p 7.5
