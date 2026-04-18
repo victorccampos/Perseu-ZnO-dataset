@@ -4,11 +4,12 @@ shopt -s nullglob
 
 # --- Executável do LAMMPS ---
 LAMMPS_BIN="$HOME/MLFF_AENET-v2.4/lammps-4Feb20/src/lmp_mpi"
-INPUT_LMP="md.lmp"
+INPUT_LMP="in.lmp"
 
+prefix="zno_lda_mlff"
 mkdir -p xfset
 
-for f in displaced/zno_mlff*.lammps; do
+for f in displaced/*.lammps; do
     base=$(basename "$f" .lammps)
 
     rm -f XFSET tmp.lammps log.lammps
