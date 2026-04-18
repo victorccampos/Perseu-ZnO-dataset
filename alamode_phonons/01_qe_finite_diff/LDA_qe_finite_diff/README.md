@@ -77,13 +77,13 @@ Aqui o trecho específico do [ZnO.ph.out](/home/jvc/ZnO_database/DFT_LDA/02_phon
 
 ## Resultados 
 ### Sem correção não-analítica
-![](band_NA0_meV.png)
-![](band_NA0_THz.png)
+|  meV        | THz            |
+|:----------:|:------------:|
+| ![](band_NA0_meV.png) | ![](band_NA0_THz.png) |
 
-### Comparando correção não-analítica vs Sem correção não-analítica__ (cm^-1):
-![](band_NA0-vs-NA3.png)
+### Com a correção
+| cm $^{-1}$| meV|
+|:--------:|:---:| 
+| ![](band_NA0-vs-NA3.png) | ![](band_NA3.png) |
 
-### Correção não-analítica
-![](band_NA3.png)
 
----
