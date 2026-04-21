@@ -76,14 +76,14 @@ Aqui o trecho específico do [ZnO.ph.out](/home/jvc/ZnO_database/DFT_LDA/02_phon
       E*z (        0.00000       -0.00000       -2.18524 )
 
 ## Resultados 
-### Sem correção não-analítica
-|  meV        | THz            |
-|:----------:|:------------:|
-| ![](band_NA0_meV.png) | ![](band_NA0_THz.png) |
 
-### Com a correção
-| cm $^{-1}$| meV|
-|:--------:|:---:| 
-| ![](band_NA0-vs-NA3.png) | ![](band_NA3.png) |
+- NA0: **Sem** correção não analítica
+- NA3: **Com** correção não analítica
+
+<div align="center">
+
+![](band.png)
+
+<div align="center">
 
 
