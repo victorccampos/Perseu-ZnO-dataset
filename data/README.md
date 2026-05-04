@@ -8,13 +8,23 @@ Este diretório contém dados relacionados ao banco de dados de óxido de zinco 
 ## Estrutura do Diretório
 
 ```sh
-data/  
-├── datasets/          # Conjuntos de dados em XSF      (git ignored)  
-├── raw/               # Dados brutos (PWSCF IO)        (git ignored)  
-├── subsets/           # Dados processados              (git ignored)    
-├── raw_LDA_QE.tar.gz  # PWSCF LDA -- compressed
-├── raw_PBEU_QE.tar.gz  # PWSCF LDA -- compressed
-├── README.md  
+.
+├── dataset   # XSF's
+│   ├── LDA_dataset  
+│   └── PBEU_dataset  
+├── dataset_LDA.tar.xz  
+├── dataset_PBEU.tar.xz  
+├── LDA_normal_modes.tar.xz  
+├── raw    # I/O do PWSCF 
+│   ├── LDA_QE  
+│   └── PBEU_QE  
+├── raw_LDA_QE.tar.gz  
+├── raw_PBEU_QE.tar.xz  
+├── README.md # Este arquivo  
+└── subsets  
+    ├── 01_LDA_dataset_clean   # Subset de LDA_dataset com filtros (Notebooks/LDA_dataset_analysis.ipynb)
+    ├── normal_modes_LDA       # Normal mode sampling  
+    └── README.md  
 
 ```
 
