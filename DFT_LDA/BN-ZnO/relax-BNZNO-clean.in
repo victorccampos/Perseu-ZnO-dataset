@@ -1,0 +1,51 @@
+&CONTROL
+calculation = 'relax'
+pseudo_dir = '/home/jvc/ZnO_database/pseudos/ppdojo_LDA'
+outdir='.'
+prefix = 'ZnO_h-BN'
+nstep=450
+verbosity = 'high'
+tstress=.true.
+tprnfor=.true.
+forc_conv_thr=1.0d-5
+etot_conv_thr=1.0d-6
+/
+&SYSTEM
+ibrav= 4
+celldm(1) = 6.100257700599999
+celldm(3) = 1.1
+ntyp=2
+nat=4
+ecutwfc=80
+ecutrho=320
+occupations='fixed'
+nbnd=72
+/
+&ELECTRONS
+diagonalization='david'
+mixing_mode='local-TF'
+conv_thr= 1.0d-9
+mixing_beta=0.3
+electron_maxstep=190
+/
+&IONS
+ion_dynamics='bfgs'
+/
+&CELL
+cell_dynamics='bfgs'
+press_conv_thr=0.5d0
+cell_dofree='ibrav'
+/
+
+ATOMIC_SPECIES
+Zn   65.380    Zn_pseudo-dojo_NC_SR_LDA.upf
+ O   15.999    O_pseudo-dojo_NC_SR_LDA.upf
+
+K_POINTS automatic
+6 6 4 0 0 0
+
+ATOMIC_POSITIONS (crystal)
+Zn 0.6666666667 0.3333333333 0.44
+Zn 0.3333333333 0.6666666667 0.94
+O 0.6666666667 0.3333333333 0.94
+O 0.3333333333 0.6666666667 0.44

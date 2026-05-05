@@ -1,0 +1,56 @@
+&CONTROL
+   calculation      = 'relax'
+   verbosity        = 'high'
+   nstep            = 300
+   tstress          = .true.
+   tprnfor          = .true.
+   outdir           = './'
+   prefix           = 'hZnO_relax_LDA'
+   etot_conv_thr    = 1e-08
+   forc_conv_thr    = 0.0001
+   disk_io          = 'none'
+   pseudo_dir       = '/home/jvc/LDA_Study/pseudos/pseudo_dojo'
+/
+&SYSTEM
+   ibrav            = 0
+   nat              = 4
+   ntyp             = 2
+   nbnd             = 36
+   ecutwfc          = 80
+   ecutrho          = 320
+   occupations      = 'fixed'
+/
+&ELECTRONS
+   electron_maxstep = 120
+   conv_thr         = 1e-12
+   mixing_mode      = 'local-TF'
+   mixing_beta      = 0.3
+   diagonalization  = 'david'
+/
+&IONS
+   ion_dynamics     = 'bfgs'
+/
+&CELL
+/
+&FCP
+/
+&RISM
+/
+ATOMIC_SPECIES
+Zn 65.38 Zn_pseudo-dojo_NC_SR_LDA.upf
+O 15.999 O_pseudo-dojo_NC_SR_LDA.upf
+
+K_POINTS automatic
+6 6 4  0 0 0
+
+CELL_PARAMETERS angstrom
+3.20000000000000 0.00000000000000 0.00000000000000
+-1.60000000000000 2.77128129211020 0.00000000000000
+0.00000000000000 0.00000000000000 4.80000000000000
+
+ATOMIC_POSITIONS crystal
+Zn 0.6666666667 0.3333333333 0.4400000000  
+Zn 0.3333333333 0.6666666667 0.9400000000  
+O 0.6666666667 0.3333333333 0.9400000000  
+O 0.3333333333 0.6666666667 0.4400000000  
+
