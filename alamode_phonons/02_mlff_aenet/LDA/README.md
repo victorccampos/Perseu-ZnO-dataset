@@ -3,7 +3,8 @@
 ```shell
 .
 ├── 00_shared # common alamode, python files (share same geometry of LDA)
-├── model001
+├── model001  # Terrible phonons
+├── model002  # ænet convencional, dataset reduzido, ifx na Perseu
 └── README.md
 ```
 
