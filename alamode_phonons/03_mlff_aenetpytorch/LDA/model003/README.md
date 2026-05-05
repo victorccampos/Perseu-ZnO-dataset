@@ -25,3 +25,5 @@ componentes agora tá na mesma ordem de grandeza.
 ## Dispersão
 
 ![Dispersão de Fônons](./band.png)
+
+Não foi o suficiente pra tirar os fônons negativos e ainda deu uma shiftada pra baixo nas bandas acústicas e uma flat de $m$ pra $\Gamma$ ????
