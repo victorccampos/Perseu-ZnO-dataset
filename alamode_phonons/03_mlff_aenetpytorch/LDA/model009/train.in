@@ -1,0 +1,26 @@
+TRAININGSET dataset3.train.ascii
+TESTPERCENT 10
+ITERATIONS 2000
+ITERWRITE 1 
+BATCHSIZE 256
+
+
+MAXFORCES 20
+!SAVE_ENERGIES
+!SAVE_FORCES
+
+VERBOSE
+
+MEMORY_MODE gpu
+
+FORCES
+alpha=0.2
+
+METHOD
+method=adamw lr=0.0001
+
+REGULARIZATION 1e-5
+
+NETWORKS
+Zn            Zn.aenetpy.ann     2            25:tanh 25:tanh
+O             O.aenetpy.ann      2            25:tanh 25:tanh
