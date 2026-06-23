@@ -1,50 +1,125 @@
-# --------------- INITIALIZATION ----------------------
+# ==============================================================================
+# EXPANSÃO TÉRMICA DO ZnO
+# T = 100, 400, 700, 1000, 1300, 1600, 1900, 2200 [8 pontos]
+# Tmelt ~ 1975 C ~ 2248K
+# Ref.: https://www.acs.org/molecule-of-the-week/archive/z/zinc-oxide.html 
+# ==============================================================================
+
+
+
+# --- 1. VARIÁVEIS DE CONTROLE ---
+variable T_target equal 100
+variable P_target equal 0
+
+# Tempo de simulação
+variable N_equil equal 5000
+variable N_prod equal 100
+variable N_thermo equal 100
+
+variable vol equal vol 
+
+#  Caminhos de arquivos e diretórios
+
+## Estrutura inicial (supercélula)
+variable SUPERCELL_DIR string "../../supercells"
+variable SUPERCELL string "222"
+variable SUPERCELL_FILE string "ZnO-${SUPERCELL}.lammps"
+variable LAMMPSDATA_FILE string "${SUPERCELL_DIR}/${SUPERCELL_FILE}"
+
+
+## Potenciais MLFF (ANN)
+variable POTENTIALS_DIR string "../../potentials/model009"
+variable Zn_MLFF string "Zn.aenetpy.ann"
+variable O_MLFF string "O.aenetpy.ann"
+
+## Outputs
+variable TRAJ_DIR string "./trajectories" 
+variable TRAJ_FILENAME string "ZnO-${SUPERCELL}-${T_target}K.lammpstrj"
+variable TRAJ_EVERY equal 100                                   
+
+variable VOLUME_DIR string "./volumes"       
+variable VOLUME_FILE string "volume_${T_target}K.dat"
+
+## Restarts
+variable RESTARTS_DIR string "./restarts"    
+variable N_restart_equilibrium equal 50000
+
+# --- 2. INICIALIZAÇÃO ---
 units           metal
 atom_style      atomic
 boundary        p p p
 
-# --------------- ATOM DEFINITION --------------------
-read_data       ZnO-444.lammps
+read_data       ${LAMMPSDATA_FILE} 
 
-mass 1 65.380 # Zn = 1
-mass 2 15.999 # O  = 2
+mass 1 65.380  # Zn = 1
+mass 2 15.999  #  O = 2 
 
-# ----------------- Force Fields ----------------------
-variable pot_dir string "../../potentials/model009"
-pair_style      aenet ${pot_dir}/Zn.aenetpy.ann ${pot_dir}/O.aenetpy.ann
+
+
+# --- 3. Force Fields --- 
+pair_style      aenet ${POTENTIALS_DIR}/${Zn_MLFF} ${POTENTIALS_DIR}/${O_MLFF}
 pair_coeff      * *
 
-# ----------------- VARIABLES ----------------------
-variable P_target equal 0
-variable T_target equal 100
-variable material string ZnO
 
 
-# ================= EQUILIBRATION =====================
-# Set timestep to 1 fs (10^-15s) [time] = picoseconds	
+# --- 4. Restarts ---
+restart ${N_restart_equilibrium} restart.*.thermalization
 
+
+
+# --- 5. Velocidade Inicial (Dependente da Temperatura) Não é necessário para T != 100K
 timestep        0.001 
-
-# Set temperature
 velocity    all create ${T_target} 13282209 dist gaussian
 
-# Assign fixes --- NPT simulation
-# T_i = T_target = T_f
-# iso = same pressure in all directions (isotropic)
-
-fix         1 all npt temp ${T_target} ${T_target} 0.1 iso ${P_target} ${P_target} 1.0
 
 
-# Set thermo output
-thermo          100
+# --- 6. CONFIGURAÇÃO DE SAÍDA DE TERMODINÂMICA (TELA/LOG)
+thermo          ${N_thermo}
 thermo_style    custom step temp press vol ke pe etotal
 
-# --- Produção ---
-# 1. Equilíbrio (Termalização) (ex: 200 000 -> 200ps - 0.2 ns)
 
-run             400000
 
-# 2. Produção -- cálculo de média (ex: 50 ps)
-#fix             2 all ave/time 10 100 1000 v_vol file volume_vs_time_${T_target}.dat
-run             100000
+# ==============================================================================
+# FASE I: TERMALIZAÇÃO (EQUILIBRAÇÃO NPT)
+#   Nota: foca apenas em estabilizar temperatura, pressão e volume.
+# ==============================================================================
+
+dump 1 all custom ${TRAJ_EVERY} ${TRAJ_DIR}/${TRAJ_FILENAME} &
+id type x y z fx fy fz vx vy vz
+
+fix 1 all npt temp ${T_target} ${T_target} 0.1 iso ${P_target} ${P_target} 1.0
+
+
+print " --- BEGIN: INICIANDO FASE DE TERMALIZAÇÃO --- "
+run             ${N_equil}
+print " --- FIM DA FASE DE TERMALIZAÇÃO --- "
+
+
+
+# ==============================================================================
+# FASE II: PRODUÇÃO E COLETA DE DADOS
+# 
+# Com o sistema termalizado, começamos a gravas as médias e trajetórias.
+# ==============================================================================
+
+# fix             2 all ave/time 10 100 1000 v_vol file ${VOLUME_DIR}/${VOLUME_FILE}
+
+
+# print " --- INICIANDO FASE DE PRODUÇÃO --- "
+# run             ${N_prod}
+# print " --- FIM DA FASE DE PRODUÇÃO --- "
+
+
+
+# # =========================================================================
+# # FASE III: SALVAMENTO DE ESTADO FINAL
+# # Escreve um arquivo de dados finalizado que serve como input para a próxima
+# # temperatura.
+# # =========================================================================
+
+# write_data      final_ZnO_${T_target}K.data
+# write_restart   final_ZnO_${T_target}K.restart
+
+# print            "--- END: SIMULAÇÃO DE ${T_target}K CONCLUÍDA COM SUCESSO ---"
+
 
